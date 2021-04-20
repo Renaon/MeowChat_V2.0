@@ -1,16 +1,16 @@
 package server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 public class ClientHandler {
     private Server server;
     private Socket socket;
-    private DataInputStream in;
-    private DataOutputStream out;
+//    private DataInputStream in;
+//    private DataOutputStream out;
+    private BufferedReader in;
+    private BufferedWriter out;
 
     private String nickname;
     private String login;
@@ -19,9 +19,10 @@ public class ClientHandler {
         try {
             this.server = server;
             this.socket = socket;
-            in = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(socket.getOutputStream());
-
+//            in = new DataInputStream(socket.getInputStream());
+//            out = new DataOutputStream(socket.getOutputStream());
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             new Thread(() -> {
                 try {
                     // установска таймаута, максимальное время молчания,
@@ -30,10 +31,11 @@ public class ClientHandler {
 
                     // цикл аутентификации
                     while (true) {
-                        String str = in.readUTF();
+                        String str = in.readLine();
 
                         if (str.equals("/end")) {
-                            out.writeUTF("/end");
+                            out.write("/end \n");
+                            out.flush();
                             throw new RuntimeException("Клиент решил отключиться");
                         }
                         // Аутентификация
@@ -80,11 +82,12 @@ public class ClientHandler {
 
                     //цикл работы
                     while (true) {
-                        String str = in.readUTF();
+                        String str = in.readLine();
 
                         if (str.startsWith("/")) {
                             if (str.equals("/end")) {
-                                out.writeUTF("/end");
+                                out.write("/end \n");
+                                out.flush();
                                 break;
                             }
                             if (str.startsWith("/w")) {
@@ -120,7 +123,8 @@ public class ClientHandler {
 
     public void sendMsg(String msg) {
         try {
-            out.writeUTF(msg);
+            out.write(msg + "\n");
+            out.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

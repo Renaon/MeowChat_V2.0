@@ -19,9 +19,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -43,8 +41,10 @@ public class Controller implements Initializable {
     public ListView<String> clientList;
 
     private Socket socket;
-    private DataInputStream in;
-    private DataOutputStream out;
+//    private DataInputStream in;
+//    private DataOutputStream out;
+    private BufferedReader in;
+    private BufferedWriter out;
 
     private final String IP_ADDRESS = "localhost";
     private final int PORT = 8189;
@@ -80,7 +80,8 @@ public class Controller implements Initializable {
                 System.out.println("bye");
                 if (socket != null && !socket.isClosed()) {
                     try {
-                        out.writeUTF("/end");
+                        out.write("/end \n");
+                        out.flush();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -93,14 +94,16 @@ public class Controller implements Initializable {
     private void connect() {
         try {
             socket = new Socket(IP_ADDRESS, PORT);
-            in = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(socket.getOutputStream());
+//            in = new DataInputStream(socket.getInputStream());
+//            out = new DataOutputStream(socket.getOutputStream());
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
             new Thread(() -> {
                 try {
                     //цикл аутентификации
                     while (true) {
-                        String str = in.readUTF();
+                        String str = in.readLine();
 
                         if (str.startsWith("/")) {
                             if (str.equals("/end")) {
@@ -124,7 +127,7 @@ public class Controller implements Initializable {
                     }
                     //цикл работы
                     while (authenticated) {
-                        String str = in.readUTF();
+                        String str = in.readLine();
 
                         if (str.startsWith("/")) {
                             if (str.equals("/end")) {
@@ -165,7 +168,8 @@ public class Controller implements Initializable {
     @FXML
     public void sendMsg() {
         try {
-            out.writeUTF(textField.getText());
+            out.write(textField.getText() + "\n");
+            out.flush();
             textField.clear();
             textField.requestFocus();
         } catch (IOException e) {
@@ -182,7 +186,8 @@ public class Controller implements Initializable {
                 loginField.getText().trim(), passwordField.getText().trim());
 
         try {
-            out.writeUTF(msg);
+            out.write(msg + "\n");
+            out.flush();
             passwordField.clear();
         } catch (IOException e) {
             e.printStackTrace();
@@ -239,7 +244,8 @@ public class Controller implements Initializable {
         }
         String msg = String.format("/reg %s %s %s", login, password, nickname);
         try {
-            out.writeUTF(msg);
+            out.write(msg + "\n");
+            out.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

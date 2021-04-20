@@ -26,8 +26,8 @@ public class DBAuth implements AuthService{
         String sqllogin = "";
         try{
             connect();
-            ResultSet res = statement.executeQuery("SELECT LOGIN FROM c_users WHERE LOGIN = " + login +
-                    " AND PASSWORD = " + password + ";");
+            ResultSet res = statement.executeQuery("SELECT LOGIN FROM c_users WHERE LOGIN = '" + login +
+                    "' AND PASSWORD = '" + password + "';");
             sqllogin = res.getString(1);
 
             res.close();
@@ -46,9 +46,10 @@ public class DBAuth implements AuthService{
         int res = 0;
         try{
             connect();
-            res = statement.executeUpdate("INSERT INTO c_users (LOGIN, PASSWORD)  VALUES('" +
-                    login + "', '" + password + "');");
-
+            if(getNicknameByLoginAndPassword(login, password).isEmpty()) {
+                res = statement.executeUpdate("INSERT INTO c_users (LOGIN, PASSWORD)  VALUES('" +
+                        login + "', '" + password + "');");
+            }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         } catch (ClassNotFoundException e) {
