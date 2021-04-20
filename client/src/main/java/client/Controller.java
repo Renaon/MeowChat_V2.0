@@ -41,8 +41,6 @@ public class Controller implements Initializable {
     public ListView<String> clientList;
 
     private Socket socket;
-//    private DataInputStream in;
-//    private DataOutputStream out;
     private BufferedReader in;
     private BufferedWriter out;
 
@@ -55,6 +53,10 @@ public class Controller implements Initializable {
     private Stage stage;
     private Stage regStage;
     private RegController regController;
+
+    private BufferedWriter file_out;
+    private BufferedReader file_in;
+    private Long messageCounter;
 
     public void setAuthenticated(boolean authenticated) {
         this.authenticated = authenticated;
@@ -94,10 +96,9 @@ public class Controller implements Initializable {
     private void connect() {
         try {
             socket = new Socket(IP_ADDRESS, PORT);
-//            in = new DataInputStream(socket.getInputStream());
-//            out = new DataOutputStream(socket.getOutputStream());
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            file_out = new BufferedWriter( new FileWriter("client/log.txt"));
 
             new Thread(() -> {
                 try {
@@ -168,8 +169,12 @@ public class Controller implements Initializable {
     @FXML
     public void sendMsg() {
         try {
-            out.write(textField.getText() + "\n");
+            String message = textField.getText() + "\n";
+            out.write(message);
+            file_out.write(nickname + ": " + message);
             out.flush();
+            file_out.flush();
+            messageCounter++;
             textField.clear();
             textField.requestFocus();
         } catch (IOException e) {
@@ -248,6 +253,15 @@ public class Controller implements Initializable {
             out.flush();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void readHundredLines(){
+        try{
+            file_in = new BufferedReader(new FileReader("src/log.txt"));
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Нет файла, история добавлена не будет");
         }
     }
 }
