@@ -23,6 +23,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.Scanner;
 
 public class Controller implements Initializable {
     @FXML
@@ -56,7 +57,6 @@ public class Controller implements Initializable {
 
     private BufferedWriter file_out;
     private BufferedReader file_in;
-    private Long messageCounter;
 
     public void setAuthenticated(boolean authenticated) {
         this.authenticated = authenticated;
@@ -98,8 +98,7 @@ public class Controller implements Initializable {
             socket = new Socket(IP_ADDRESS, PORT);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            file_out = new BufferedWriter( new FileWriter("client/log.txt"));
-
+            file_out = new BufferedWriter( new FileWriter("client/log.txt", true));
             new Thread(() -> {
                 try {
                     //цикл аутентификации
@@ -127,6 +126,7 @@ public class Controller implements Initializable {
                         }
                     }
                     //цикл работы
+                    readHundredLines();
                     while (authenticated) {
                         String str = in.readLine();
 
@@ -160,7 +160,6 @@ public class Controller implements Initializable {
                     }
                 }
             }).start();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -174,7 +173,6 @@ public class Controller implements Initializable {
             file_out.write(nickname + ": " + message);
             out.flush();
             file_out.flush();
-            messageCounter++;
             textField.clear();
             textField.requestFocus();
         } catch (IOException e) {
@@ -258,10 +256,40 @@ public class Controller implements Initializable {
 
     private void readHundredLines(){
         try{
-            file_in = new BufferedReader(new FileReader("src/log.txt"));
+            file_in = new BufferedReader(new FileReader("client/log.txt"));
+            int lines = getWordCount(file_in);
+            file_in.close();
+            file_in = new BufferedReader(new FileReader("client/log.txt"));
+            textArea.appendText("История: \n");
+            if(lines<=100){
+                String str = "";
+                while ((str = file_in.readLine()) != null) {
+                    textArea.appendText(str + "\n");
+                }
+            }
+            if(lines > 100){
+                int plank = lines-100;
+                int i = 0;
+                String str;
+                while ((str = file_in.readLine()) != null) {
+                    if(i<plank) continue;
+                    else textArea.appendText(str);
+                    i++;
+                }
+            }
 
         } catch (FileNotFoundException e) {
             System.out.println("Нет файла, история добавлена не будет");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
+
+    private int getWordCount(BufferedReader file_in) throws IOException {
+        int lines = 0;
+        while (file_in.readLine() != null) {
+            lines++;
+        }
+        return lines;
     }
 }
