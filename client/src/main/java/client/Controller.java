@@ -98,7 +98,6 @@ public class Controller implements Initializable {
             socket = new Socket(IP_ADDRESS, PORT);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-            file_out = new BufferedWriter( new FileWriter("client/log.txt", true));
             new Thread(() -> {
                 try {
                     //цикл аутентификации
@@ -126,10 +125,11 @@ public class Controller implements Initializable {
                         }
                     }
                     //цикл работы
+                    file_out = new BufferedWriter( new FileWriter("client/" + nickname + "_log.txt", true));
                     readHundredLines();
                     while (authenticated) {
                         String str = in.readLine();
-
+                        file_out.write(str + "\n");
                         if (str.startsWith("/")) {
                             if (str.equals("/end")) {
                                 break;
@@ -256,10 +256,10 @@ public class Controller implements Initializable {
 
     private void readHundredLines(){
         try{
-            file_in = new BufferedReader(new FileReader("client/log.txt"));
+            file_in = new BufferedReader(new FileReader("client/" + nickname + "_log.txt"));
             int lines = getWordCount(file_in);
             file_in.close();
-            file_in = new BufferedReader(new FileReader("client/log.txt"));
+            file_in = new BufferedReader(new FileReader("client/" + nickname + "_log.txt"));
             textArea.appendText("История: \n");
             if(lines<=100){
                 String str = "";
