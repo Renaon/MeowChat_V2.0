@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ClientHandler {
     private Server server;
@@ -15,14 +17,18 @@ public class ClientHandler {
     private String nickname;
     private String login;
 
+    private int poolSize = 5;
+    ExecutorService executor;
+
     public ClientHandler(Server server, Socket socket) {
         try {
             this.server = server;
             this.socket = socket;
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
+            executor = Executors.newFixedThreadPool(poolSize);
 
-            new Thread(() -> {
+            executor.execute(() -> {
                 try {
                     // установска таймаута, максимальное время молчания,
                     // после которого будет брошено исключение SocketTimeoutException
@@ -111,7 +117,8 @@ public class ClientHandler {
                         e.printStackTrace();
                     }
                 }
-            }).start();
+            });
+            executor.shutdown();
 
         } catch (IOException e) {
             e.printStackTrace();
