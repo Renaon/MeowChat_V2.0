@@ -33,10 +33,8 @@ public class DBAuth implements AuthService{
             res.close();
 
 
-        } catch (SQLException throwables) {
+        } catch (SQLException | ClassNotFoundException throwables) {
             throwables.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
         }
         return sqllogin;
     }
