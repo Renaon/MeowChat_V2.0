@@ -44,9 +44,10 @@ public class DBAuth implements AuthService{
         int res = 0;
         try{
             connect();
-            res = statement.executeUpdate("INSERT INTO c_users (LOGIN, PASSWORD)  VALUES('" +
-                    login + "', '" + password + "');");
-
+            if(getNicknameByLoginAndPassword(login, password).isEmpty()) {
+                res = statement.executeUpdate("INSERT INTO c_users (LOGIN, PASSWORD)  VALUES('" +
+                        login + "', '" + password + "');");
+            }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         } catch (ClassNotFoundException e) {
