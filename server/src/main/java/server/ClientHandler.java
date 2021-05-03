@@ -7,6 +7,8 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class ClientHandler {
     private Server server;
@@ -19,6 +21,8 @@ public class ClientHandler {
 
     private int poolSize = 5;
     ExecutorService executor;
+
+    private static final Logger logger = Logger.getLogger(ClientHandler.class.getName());
 
     public ClientHandler(Server server, Socket socket) {
         try {
@@ -40,6 +44,7 @@ public class ClientHandler {
 
                         if (str.equals("/end")) {
                             out.writeUTF("/end");
+                            logger.info("Клиент решил отключиться");
                             throw new RuntimeException("Клиент решил отключиться");
                         }
                         // Аутентификация
@@ -62,9 +67,11 @@ public class ClientHandler {
                                     socket.setSoTimeout(0);
                                     break;
                                 } else {
+                                    logger.info("С этим логином уже авторизовались");
                                     sendMsg("С этим логином уже авторизовались");
                                 }
                             } else {
+                                logger.info("Был получен Неверный логин / пароль");
                                 sendMsg("Неверный логин / пароль");
                             }
                         }
@@ -140,4 +147,5 @@ public class ClientHandler {
     public String getLogin() {
         return login;
     }
+
 }

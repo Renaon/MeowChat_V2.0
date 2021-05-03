@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 public class Server {
     private static ServerSocket server;
@@ -19,18 +21,20 @@ public class Server {
     private List<ClientHandler> clients;
     private AuthService authService;
 
+    private static final Logger logger = Logger.getLogger(Server.class.getName());
+
     public Server() {
         clients = new CopyOnWriteArrayList<>();
         authService = new DBAuth();
 
         try {
             server = new ServerSocket(PORT);
-            System.out.println("Server started");
+            logger.info("Server started");
 
             while (true) {
                 socket = server.accept();
-                System.out.println(socket.getLocalSocketAddress());
-                System.out.println("Client connect: " + socket.getRemoteSocketAddress());
+                logger.info("" + socket.getLocalSocketAddress());
+                logger.info("Client connect: " + socket.getRemoteSocketAddress());
                 new ClientHandler(this, socket);
             }
 
